@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DB Bahnsteigdisplay Generator</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DB+Screen+Sans:wght@400;700&family=Noto+Sans:wght@400;700;900&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ===== SIDEBAR / EDITOR ===== -->
+<aside id="sidebar">
+  <div id="sidebar-header">
+    <span class="db-logo">&#9632; DB</span>
+    <span id="sidebar-title">Display-Generator</span>
+    <button id="toggle-sidebar" title="Sidebar ein-/ausblenden">&#9776;</button>
+  </div>
+
+  <div id="sidebar-content">
+
+    <!-- Bahnhof -->
+    <section class="editor-section">
+      <h3>Bahnhof</h3>
+      <label>Bahnhofname
+        <input type="text" id="station-name" value="Berlin Hbf" />
+      </label>
+      <label>Gleis
+        <input type="text" id="track" value="7" />
+      </label>
+    </section>
+
+    <!-- Züge -->
+    <section class="editor-section">
+      <h3>Züge <small>(bis zu 3)</small></h3>
+      <div id="train-list"></div>
+      <button id="add-train" class="btn-secondary">+ Zug hinzufügen</button>
+    </section>
+
+    <!-- Störung -->
+    <section class="editor-section">
+      <h3>Störungshinweis</h3>
+      <label class="row-label">
+        <input type="checkbox" id="disruption-active" />
+        Störung aktiv
+      </label>
+      <label>Meldung
+        <textarea id="disruption-text" rows="3">Aufgrund einer Betriebsstörung kommt es zu Verspätungen.</textarea>
+      </label>
+    </section>
+
+    <!-- Export -->
+    <section class="editor-section">
+      <h3>Export &amp; Ansicht</h3>
+      <button id="btn-fullscreen" class="btn-secondary">&#x26F6; Vollbild</button>
+      <button id="btn-export" class="btn-primary">&#8681; PNG exportieren</button>
+    </section>
+
+    <p class="disclaimer">Inoffizielles Fan-Projekt. Keine Verbindung zur DB AG.</p>
+  </div>
+</aside>
+
+<!-- ===== DISPLAY PREVIEW ===== -->
+<main id="preview-area">
+  <div id="display">
+
+    <!-- Header Bar -->
+    <div id="display-header">
+      <div id="display-station">Berlin Hbf</div>
+      <div id="display-track-box">
+        <span id="display-track-label">Gleis</span>
+        <span id="display-track-number">7</span>
+      </div>
+      <div id="display-clock">00:00:00</div>
+    </div>
+
+    <!-- Disruption Banner -->
+    <div id="disruption-banner" class="hidden">
+      <span class="disruption-icon">&#9888;</span>
+      <span id="disruption-message"></span>
+    </div>
+
+    <!-- Train Rows -->
+    <div id="train-rows"></div>
+
+    <!-- Footer -->
+    <div id="display-footer">
+      <span>DB InfraGO AG</span>
+      <span id="footer-date"></span>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
