@@ -3,96 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DB Zuganzeiger Generator</title>
+  <title>DB ZIM Zuganzeiger Generator</title>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-
-<aside id="sidebar">
-  <div id="sidebar-header">
-    <svg id="db-logo" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">
-      <rect width="60" height="40" rx="3" fill="#fff"/>
-      <text x="6" y="30" font-family="Arial Black,sans-serif" font-size="26" font-weight="900" fill="#EC0016">DB</text>
-    </svg>
-    <span id="sidebar-title">Zuganzeiger-Generator</span>
-    <button id="btn-collapse" title="Sidebar">&#9776;</button>
-  </div>
-
-  <div id="sidebar-body">
-
-    <section class="s-section">
-      <h3>Bahnhof &amp; Gleis</h3>
-      <label>Bahnhof
-        <input type="text" id="cfg-station" value="Berlin Hbf" />
-      </label>
-      <label>Gleis
-        <input type="text" id="cfg-track" value="7" />
-      </label>
-    </section>
-
-    <section class="s-section">
-      <h3>Züge <small>(max. 3)</small></h3>
-      <div id="train-editor"></div>
-      <button id="btn-add-train" class="btn-ghost">+ Zug hinzufügen</button>
-    </section>
-
-    <section class="s-section">
-      <h3>Störung</h3>
-      <label class="inline-label">
-        <input type="checkbox" id="cfg-disruption" />
-        Störung aktiv
-      </label>
-      <label>Meldungstext
-        <textarea id="cfg-disruption-text" rows="3">Aufgrund einer Betriebsstörung kommt es zu Verspätungen im Zugverkehr.</textarea>
-      </label>
-    </section>
-
-    <section class="s-section">
-      <h3>Aktionen</h3>
-      <button id="btn-fullscreen" class="btn-ghost">⛶ Vollbild</button>
-      <button id="btn-export" class="btn-red">⬇ PNG exportieren</button>
-    </section>
-
-    <p class="s-note">Inoffizielles Fan-Projekt – keine Verbindung zur DB AG / DB InfraGO AG.</p>
-  </div>
-</aside>
-
-<main id="canvas-area">
-  <!-- THE DISPLAY -->
-  <div id="zim">
-
-    <!-- TOP BAR -->
-    <div id="zim-topbar">
-      <div id="zim-station">Berlin Hbf</div>
-      <div id="zim-right">
-        <div id="zim-track-wrap">
-          <span id="zim-track-label">Gleis</span>
-          <span id="zim-track-num">7</span>
-        </div>
-        <div id="zim-clock">00:00</div>
-      </div>
+  <aside id="sidebar">
+    <div id="sidebar-header">
+      <span id="brand">DB ZIM</span>
+      <button id="btn-collapse" title="Sidebar umschalten">☰</button>
     </div>
 
-    <!-- DISRUPTION -->
-    <div id="zim-disruption" class="hidden">
-      <span class="dis-icon">&#9888;</span>
-      <span id="zim-disruption-text"></span>
+    <div id="sidebar-body">
+      <section class="panel">
+        <h3>Anzeige</h3>
+        <label>Bahnhof
+          <input type="text" id="cfg-station" value="Berlin Hbf" />
+        </label>
+        <label>Modus
+          <select id="cfg-mode">
+            <option value="platform" selected>Bahnsteig / Zuganzeiger</option>
+            <option value="preview">Referenzfoto-Stil</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="panel">
+        <h3>Züge</h3>
+        <div id="train-editor"></div>
+        <button id="btn-add-train" class="btn btn-secondary">+ Zug hinzufügen</button>
+      </section>
+
+      <section class="panel">
+        <h3>Hinweis</h3>
+        <label class="inline"><input type="checkbox" id="cfg-note-active" /> Hinweis aktiv</label>
+        <label>Text
+          <textarea id="cfg-note-text" rows="3">Bitte auf geänderte Wagenreihung achten.</textarea>
+        </label>
+      </section>
+
+      <section class="panel">
+        <h3>Export</h3>
+        <button id="btn-fullscreen" class="btn btn-secondary">Vollbild</button>
+        <button id="btn-export" class="btn btn-primary">PNG exportieren</button>
+      </section>
+
+      <p class="disclaimer">Inoffizielles Fan-Projekt. Keine Verbindung zur Deutschen Bahn oder DB InfraGO.</p>
     </div>
+  </aside>
 
-    <!-- TRAINS -->
-    <div id="zim-trains"></div>
-
-    <!-- BOTTOM BAR -->
-    <div id="zim-bottombar">
-      <span>DB InfraGO AG &middot; Personenbahnhöfe</span>
-      <span id="zim-date"></span>
+  <main id="workspace">
+    <div id="display-shell">
+      <div id="display-grid"></div>
     </div>
+  </main>
 
-  </div>
-</main>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

@@ -1,25 +1,21 @@
-# DB Zuganzeiger Generator
+# DB ZIM Zuganzeiger Generator
 
-Originalgetreuer Generator für die neuen ZIM-Bahnsteigdisplays der Deutschen Bahn (DB InfraGO).
+Inoffizieller Generator für die neuen blauen DB-InfraGO-Zuganzeiger mit drei Panels und grafischer Wagenreihung.
 
 ## Features
 
-- Dunkles Display-Design nach echtem DB ZIM-Standard
-- Multizuganzeige (bis zu 3 Züge)
-- Authentische Zugtyp-Badges (ICE, IC, EC, RE, RB, S, NJ, TGV, FLX)
-- Wagenreihung für den Primärzug
-- Verspätungsanzeige mit Farb-Codierung
-- Störungsbanner
-- Live-Uhr (HH:MM)
-- PNG-Export (2× Auflösung)
-- Vollbildmodus
+- Blaues Drei-Panel-Layout nach aktuellem DB-Zuganzeiger-Stil
+- Große Zeit-, Ziel- und Via-Darstellung
+- Grafische Wagenreihung mit Sektoren
+- Hinweistext optional einblendbar
+- PNG-Export
+- Netlify-ready
 
-## Deployment (Netlify)
+## Deployment
 
-1. Repo mit Netlify verbinden
-2. Build command: *leer*
-3. Publish directory: `.`
-4. Deploy 🚀
+- Build command: leer
+- Publish directory: `.`
 
----
-*Inoffizielles Fan-Projekt – keine Verbindung zur DB AG oder DB InfraGO AG.*
+## Hinweis
+
+Kein offizielles DB-Produkt.

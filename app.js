@@ -1,248 +1,227 @@
-/* DB Zuganzeiger Generator – app.js */
-
-const TRAIN_TYPES = ['ICE','IC','EC','RE','RB','S','NJ','TGV','FLX'];
-
-const WAGONS = {
-  ICE: [
-    {c:'wloco',l:'&#9654;'},
-    {c:'w1',l:'1'},{c:'w1',l:'1'},
-    {c:'wbordrestaurant',l:'&#9749;'},
-    {c:'w2',l:'2'},{c:'w2',l:'2'},{c:'w2',l:'2'},
-    {c:'wloco',l:'&#9664;'}
-  ],
-  IC: [
-    {c:'wloco',l:'&#9654;'},
-    {c:'w2',l:'2'},{c:'w2',l:'2'},
-    {c:'wbistro',l:'&#9749;'},
-    {c:'w1',l:'1'},{c:'w1',l:'1'}
-  ],
-  EC: [
-    {c:'wloco',l:'&#9654;'},
-    {c:'w2',l:'2'},{c:'w2',l:'2'},
-    {c:'w1',l:'1'}
-  ],
-  RE: [
-    {c:'wloco',l:'&#9654;'},
-    {c:'w2',l:'2'},{c:'w2',l:'2'},{c:'w2',l:'2'},
-    {c:'wloco',l:'&#9664;'}
-  ],
-  RB: [
-    {c:'wloco',l:'&#9654;'},
-    {c:'w2',l:'2'},{c:'w2',l:'2'},
-    {c:'wloco',l:'&#9664;'}
-  ],
-  S: [
-    {c:'wloco',l:'&#9654;'},
-    {c:'w2',l:'2'},{c:'w2',l:'2'},
-    {c:'wloco',l:'&#9664;'}
-  ],
-  NJ: [
-    {c:'wloco',l:'&#9654;'},
-    {c:'w2',l:'2'},{c:'wspecial',l:'&#128716;'},{c:'w1',l:'1'}
-  ],
-  TGV: [
-    {c:'wloco',l:'&#9654;'},
-    {c:'w2',l:'2'},{c:'w2',l:'2'},{c:'wbistro',l:'&#9749;'},{c:'w1',l:'1'},
-    {c:'wloco',l:'&#9664;'}
-  ],
-  FLX: [
-    {c:'wloco',l:'&#9654;'},
-    {c:'w2',l:'2'},{c:'w2',l:'2'},{c:'w2',l:'2'}
-  ]
-};
-
-let state = {
+const defaultState = {
   station: 'Berlin Hbf',
-  track: '7',
-  disruption: false,
-  disruptionText: 'Aufgrund einer Betriebsstörung kommt es zu Verspätungen im Zugverkehr.',
+  mode: 'platform',
+  noteActive: false,
+  noteText: 'Bitte auf geänderte Wagenreihung achten.',
   trains: [
-    { type:'ICE', num:'792',  dest:'München Hbf',    via:'Leipzig Hbf · Nürnberg Hbf', time:'14:22', delay:0 },
-    { type:'RE',  num:'3',   dest:'Magdeburg Hbf',  via:'Potsdam Hbf · Genthin',       time:'14:31', delay:4 },
-    { type:'S',   num:'S7',  dest:'Potsdam Hbf',    via:'',                             time:'14:35', delay:0 }
+    {
+      line: 'RE 1',
+      time: '10:17',
+      destination: 'Magdeburg Hbf',
+      via: 'Bln-Charlottenb. – Bln Wannsee – Potsdam Hbf – Werder – Brandenburg – Genthin – Burg(Magdeburg) – Magd.-Neustadt',
+      wagen: ['engine-left', 'standard-bike', 'standard-bike', 'standard-second', 'engine-right'],
+      sectors: ['A', 'B', 'C', 'D']
+    },
+    {
+      line: 'RE 1',
+      time: '11:17',
+      destination: 'Magdeburg Hbf',
+      via: 'Bln Wannsee – Potsdam Hbf – Werder – Brandenburg – Genthin – Burg(Magdeburg)',
+      wagen: ['engine-left', 'slim-second', 'slim-second', 'engine-right'],
+      sectors: ['A', 'B', 'C', 'D']
+    },
+    {
+      line: 'RE 1',
+      time: '12:17',
+      destination: 'Magdeburg Hbf',
+      via: 'Bln Wannsee – Potsdam Hbf – Werder – Brandenburg – Genthin – Burg(Magdeburg)',
+      wagen: ['engine-left', 'wide-second'],
+      sectors: ['A', 'B', 'C']
+    }
   ]
 };
 
-/* ---- Clock ---- */
-function tick() {
-  const n = new Date();
-  const pad = v => String(v).padStart(2,'0');
-  document.getElementById('zim-clock').textContent = `${pad(n.getHours())}:${pad(n.getMinutes())}`;
-  const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-  document.getElementById('zim-date').textContent =
-    `${days[n.getDay()]}, ${pad(n.getDate())}.${pad(n.getMonth()+1)}.${n.getFullYear()}`;
-}
-setInterval(tick, 1000);
-tick();
+let state = structuredClone(defaultState);
 
-/* ---- Helpers ---- */
-function addMins(t, m) {
-  if (!m || m == 0) return null;
-  const [h, min] = t.split(':').map(Number);
-  const tot = h*60 + min + parseInt(m);
-  return `${String(Math.floor(tot/60)%24).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;
+const trainEditor = document.getElementById('train-editor');
+const displayGrid = document.getElementById('display-grid');
+
+function carHTML(type) {
+  if (type === 'engine-left') return `<div class="zim-arrow">←</div><div class="zim-car engine"></div>`;
+  if (type === 'engine-right') return `<div class="zim-car engine"></div>`;
+  if (type === 'standard-bike') return `<div class="zim-car standard"><span class="bike">🚲</span></div>`;
+  if (type === 'standard-second') return `<div class="zim-car standard"><span class="cls">2</span></div>`;
+  if (type === 'slim-second') return `<div class="zim-car slim"><span class="cls">2</span></div>`;
+  if (type === 'wide-second') return `<div class="zim-car wide"><span class="cls">2</span></div>`;
+  if (type === 'wc-second') return `<div class="zim-car standard"><span class="wc">♿</span><span class="cls">2</span></div>`;
+  return `<div class="zim-car standard"><span class="cls">2</span></div>`;
 }
 
-function badgeClass(type) {
-  const t = type.toUpperCase();
-  if (['ICE','IC','EC','RE','RB','S','NJ','TGV','FLX'].includes(t)) return `zbadge-${t}`;
-  return 'zbadge-other';
-}
-
-function wagonsHTML(type) {
-  const w = WAGONS[type.toUpperCase()] || WAGONS.RE;
-  const blocks = w.map(b => `<div class="wblock ${b.c}">${b.l}</div>`).join('');
-  return `
-    <div class="zi-wagons-label">Wagenreihung</div>
-    <div class="zi-wagons-row">${blocks}</div>
-    <div class="zi-wagons-dir">&#8596; Fahrtrichtung</div>
-  `;
-}
-
-/* ---- Render Display ---- */
 function renderDisplay() {
-  document.getElementById('zim-station').textContent  = state.station || 'Bahnhof';
-  document.getElementById('zim-track-num').textContent = state.track   || '–';
+  displayGrid.innerHTML = '';
+  state.trains.slice(0, 3).forEach((train) => {
+    const panel = document.createElement('section');
+    panel.className = 'zim-panel';
 
-  const db = document.getElementById('zim-disruption');
-  if (state.disruption) {
-    db.classList.remove('hidden');
-    document.getElementById('zim-disruption-text').textContent = state.disruptionText;
-  } else {
-    db.classList.add('hidden');
-  }
+    const note = state.noteActive ? `<div class="zim-note">${escapeHtml(state.noteText)}</div>` : '';
+    const sectors = train.sectors.map(s => `<span>${escapeHtml(s)}</span>`).join('');
+    const wagons = train.wagen.map(carHTML).join('');
 
-  const container = document.getElementById('zim-trains');
-  container.innerHTML = '';
-
-  state.trains.slice(0,3).forEach((tr, i) => {
-    const primary = i === 0;
-    const expTime = addMins(tr.time, tr.delay);
-
-    let timeStatus;
-    if (tr.delay > 0) {
-      timeStatus = `<span class="zt-exp late">+${tr.delay} Min &nbsp;&#8594; ${expTime}</span>`;
-    } else {
-      timeStatus = `<span class="zt-exp ontime">&#10003;&nbsp;p&#252;nktlich</span>`;
-    }
-
-    const via = tr.via ? `<div class="zi-via">&#252;ber ${tr.via}</div>` : '';
-    const wagons = primary ? `<div class="zi-wagons">${wagonsHTML(tr.type)}</div>` : '';
-
-    const row = document.createElement('div');
-    row.className = `zrow ${primary ? 'zrow-primary' : 'zrow-secondary'}`;
-    row.innerHTML = `
-      <div class="zcell-time">
-        <span class="zt-planned">${tr.time}</span>
-        ${timeStatus}
-      </div>
-      <div class="zcell-info">
-        <div class="zi-header">
-          <span class="zbadge ${badgeClass(tr.type)}">${tr.type}&nbsp;${tr.num}</span>
-          <span class="zi-destination">${tr.dest}</span>
-        </div>
-        ${via}
-        ${wagons}
+    panel.innerHTML = `
+      <div class="zim-line">${escapeHtml(train.line)}</div>
+      <div class="zim-time">${escapeHtml(train.time)}</div>
+      <div class="zim-destination">${escapeHtml(train.destination)}</div>
+      <div class="zim-via">${escapeHtml(train.via)}</div>
+      ${note}
+      <div class="zim-wagen">
+        <div class="zim-sectors">${sectors}</div>
+        <div class="zim-wagen-row">${wagons}</div>
       </div>
     `;
-    container.appendChild(row);
+    displayGrid.appendChild(panel);
   });
 }
 
-/* ---- Render Editor ---- */
 function renderEditor() {
-  const el = document.getElementById('train-editor');
-  el.innerHTML = '';
-  state.trains.forEach((tr, i) => {
+  trainEditor.innerHTML = '';
+  state.trains.forEach((train, index) => {
     const card = document.createElement('div');
-    card.className = 't-card';
+    card.className = 'editor-card';
     card.innerHTML = `
-      <div class="t-card-head">
-        <span>Zug ${i+1}${i===0?' &mdash; Primär':''}</span>
-        <button class="rm-train" data-i="${i}">&#10005;</button>
+      <div class="editor-card-head">
+        <span>Zug ${index + 1}</span>
+        <button data-remove="${index}">×</button>
       </div>
-      <label>Typ
-        <select data-f="type" data-i="${i}">
-          ${TRAIN_TYPES.map(t=>`<option${t===tr.type?' selected':''}>${t}</option>`).join('')}
-        </select>
+      <label>Linie
+        <input type="text" data-field="line" data-index="${index}" value="${escapeAttr(train.line)}" />
       </label>
-      <label>Nummer
-        <input type="text" data-f="num" data-i="${i}" value="${tr.num}" />
+      <label>Zeit
+        <input type="text" data-field="time" data-index="${index}" value="${escapeAttr(train.time)}" />
       </label>
       <label>Ziel
-        <input type="text" data-f="dest" data-i="${i}" value="${tr.dest}" />
+        <input type="text" data-field="destination" data-index="${index}" value="${escapeAttr(train.destination)}" />
       </label>
       <label>Via
-        <input type="text" data-f="via" data-i="${i}" value="${tr.via}" />
+        <textarea data-field="via" data-index="${index}" rows="3">${escapeHtml(train.via)}</textarea>
       </label>
-      <label>Abfahrt
-        <input type="time" data-f="time" data-i="${i}" value="${tr.time}" />
-      </label>
-      <label>Verspätung (Min)
-        <input type="text" data-f="delay" data-i="${i}" value="${tr.delay}" />
+      <label>Wagenlayout
+        <select data-field="wagenPreset" data-index="${index}">
+          <option value="long" ${presetOf(train.wagen)==='long'?'selected':''}>Lang mit Fahrradsymbolen</option>
+          <option value="mid" ${presetOf(train.wagen)==='mid'?'selected':''}>Mittel</option>
+          <option value="short" ${presetOf(train.wagen)==='short'?'selected':''}>Kurz</option>
+        </select>
       </label>
     `;
-    el.appendChild(card);
+    trainEditor.appendChild(card);
   });
 }
 
-/* ---- Wire up sidebar controls ---- */
-document.getElementById('cfg-station').addEventListener('input', e => { state.station = e.target.value; renderDisplay(); });
-document.getElementById('cfg-track').addEventListener('input', e => { state.track = e.target.value; renderDisplay(); });
-document.getElementById('cfg-disruption').addEventListener('change', e => { state.disruption = e.target.checked; renderDisplay(); });
-document.getElementById('cfg-disruption-text').addEventListener('input', e => { state.disruptionText = e.target.value; renderDisplay(); });
+function presetOf(wagen) {
+  const key = JSON.stringify(wagen);
+  if (key === JSON.stringify(['engine-left', 'standard-bike', 'standard-bike', 'standard-second', 'engine-right'])) return 'long';
+  if (key === JSON.stringify(['engine-left', 'slim-second', 'slim-second', 'engine-right'])) return 'mid';
+  return 'short';
+}
 
-const te = document.getElementById('train-editor');
-te.addEventListener('input', e => {
-  const {f, i} = e.target.dataset;
-  if (!f || i===undefined) return;
-  state.trains[i][f] = e.target.value;
+function applyPreset(index, preset) {
+  if (preset === 'long') {
+    state.trains[index].wagen = ['engine-left', 'standard-bike', 'standard-bike', 'standard-second', 'engine-right'];
+    state.trains[index].sectors = ['A', 'B', 'C', 'D'];
+  } else if (preset === 'mid') {
+    state.trains[index].wagen = ['engine-left', 'slim-second', 'slim-second', 'engine-right'];
+    state.trains[index].sectors = ['A', 'B', 'C', 'D'];
+  } else {
+    state.trains[index].wagen = ['engine-left', 'wide-second'];
+    state.trains[index].sectors = ['A', 'B', 'C'];
+  }
+}
+
+trainEditor.addEventListener('input', (e) => {
+  const idx = e.target.dataset.index;
+  const field = e.target.dataset.field;
+  if (idx === undefined || !field) return;
+  state.trains[idx][field] = e.target.value;
   renderDisplay();
 });
-te.addEventListener('change', e => {
-  const {f, i} = e.target.dataset;
-  if (!f || i===undefined) return;
-  state.trains[i][f] = e.target.value;
+
+trainEditor.addEventListener('change', (e) => {
+  const idx = e.target.dataset.index;
+  const field = e.target.dataset.field;
+  if (e.target.dataset.remove !== undefined) return;
+  if (idx === undefined || !field) return;
+  if (field === 'wagenPreset') {
+    applyPreset(Number(idx), e.target.value);
+    renderEditor();
+    renderDisplay();
+    return;
+  }
+  state.trains[idx][field] = e.target.value;
   renderDisplay();
 });
-te.addEventListener('click', e => {
-  if (!e.target.classList.contains('rm-train')) return;
-  state.trains.splice(parseInt(e.target.dataset.i), 1);
+
+trainEditor.addEventListener('click', (e) => {
+  const remove = e.target.dataset.remove;
+  if (remove === undefined) return;
+  state.trains.splice(Number(remove), 1);
+  if (state.trains.length === 0) state.trains.push(structuredClone(defaultState.trains[0]));
   renderEditor();
+  renderDisplay();
+});
+
+document.getElementById('cfg-station').addEventListener('input', (e) => {
+  state.station = e.target.value;
+});
+
+document.getElementById('cfg-mode').addEventListener('change', (e) => {
+  state.mode = e.target.value;
+});
+
+document.getElementById('cfg-note-active').addEventListener('change', (e) => {
+  state.noteActive = e.target.checked;
+  renderDisplay();
+});
+
+document.getElementById('cfg-note-text').addEventListener('input', (e) => {
+  state.noteText = e.target.value;
   renderDisplay();
 });
 
 document.getElementById('btn-add-train').addEventListener('click', () => {
   if (state.trains.length >= 3) return;
-  state.trains.push({ type:'RE', num:'', dest:'Ziel', via:'', time:'15:00', delay:0 });
+  state.trains.push({
+    line: 'RE 1',
+    time: '13:17',
+    destination: 'Zielbahnhof',
+    via: 'Zwischenhalt 1 – Zwischenhalt 2 – Zwischenhalt 3',
+    wagen: ['engine-left', 'wide-second'],
+    sectors: ['A', 'B', 'C']
+  });
   renderEditor();
   renderDisplay();
 });
 
 document.getElementById('btn-collapse').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('closed');
+  document.getElementById('sidebar').classList.toggle('collapsed');
 });
 
 document.getElementById('btn-fullscreen').addEventListener('click', () => {
-  document.body.classList.toggle('fs');
-});
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') document.body.classList.remove('fs');
+  document.body.classList.toggle('fullscreen');
 });
 
 document.getElementById('btn-export').addEventListener('click', () => {
-  html2canvas(document.getElementById('zim'), {
-    backgroundColor: '#0A0A0A',
-    scale: 2,
-    useCORS: true
-  }).then(c => {
+  html2canvas(document.getElementById('display-shell'), { backgroundColor: '#0f141b', scale: 2 }).then(canvas => {
     const a = document.createElement('a');
-    a.download = `zim-${Date.now()}.png`;
-    a.href = c.toDataURL('image/png');
+    a.download = 'db-zim-generator.png';
+    a.href = canvas.toDataURL('image/png');
     a.click();
   });
 });
 
-/* ---- Init ---- */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') document.body.classList.remove('fullscreen');
+});
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+function escapeAttr(str) {
+  return escapeHtml(str);
+}
+
 renderEditor();
 renderDisplay();
