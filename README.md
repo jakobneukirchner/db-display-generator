@@ -1,26 +1,25 @@
-# DB Bahnsteigdisplay Generator
+# DB Zuganzeiger Generator
 
-Ein inoffizieller Generator für die neuen LCD-Bahnsteigdisplays der Deutschen Bahn (DB InfraGO).
+Originalgetreuer Generator für die neuen ZIM-Bahnsteigdisplays der Deutschen Bahn (DB InfraGO).
 
 ## Features
 
-- **Multizuganzeige** – bis zu 3 Züge gleichzeitig
-- **Wagenreihung** – automatische Wagenfolge je nach Zugtyp (ICE, IC, RE, RB, S, NJ, …)
-- **Verspätungsanzeige** – automatische Berechnung der verspäteten Abfahrtzeit
-- **Störungsmodus** – eigene Störungsmeldung konfigurieren
-- **Live-Uhr** – wie auf echten DB-Displays
-- **PNG-Export** – Display als Bild speichern
-- **Vollbildmodus**
+- Dunkles Display-Design nach echtem DB ZIM-Standard
+- Multizuganzeige (bis zu 3 Züge)
+- Authentische Zugtyp-Badges (ICE, IC, EC, RE, RB, S, NJ, TGV, FLX)
+- Wagenreihung für den Primärzug
+- Verspätungsanzeige mit Farb-Codierung
+- Störungsbanner
+- Live-Uhr (HH:MM)
+- PNG-Export (2× Auflösung)
+- Vollbildmodus
 
 ## Deployment (Netlify)
 
-1. Repository forken oder klonen
-2. In Netlify als neues Projekt verbinden
-3. Build-Einstellungen:
-   - **Build command:** (leer lassen)
-   - **Publish directory:** `.`
-4. Deployen 🚀
+1. Repo mit Netlify verbinden
+2. Build command: *leer*
+3. Publish directory: `.`
+4. Deploy 🚀
 
-## Hinweis
-
-Dieses Projekt ist ein inoffizielles Fan-Projekt und steht in keiner Verbindung zur Deutschen Bahn AG oder DB InfraGO AG.
+---
+*Inoffizielles Fan-Projekt – keine Verbindung zur DB AG oder DB InfraGO AG.*
